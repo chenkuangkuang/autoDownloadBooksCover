@@ -1,0 +1,2 @@
+# autoDownloadBooksCover
+自动从豆瓣下载书籍封面的爬虫
