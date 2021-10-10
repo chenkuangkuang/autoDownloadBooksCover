@@ -5,6 +5,7 @@ var readline = require('readline');
 
 var allBooks = [];
 var hasBooks = [];
+var browser = null;
 var bookName = '务虚笔记';
 var folder = "./downloads"
 // const sourceUrl = "https://book.douban.com/";
@@ -27,7 +28,7 @@ function downImg(opts = {}, path = '') {
         console.log("finish");
         resolve("ok");
       })
-      .on("close", () => {
+      .on("close", async () => {
         console.log("close");
       })
 
@@ -36,6 +37,9 @@ function downImg(opts = {}, path = '') {
 
 var fRead = fs.createReadStream('./allBooks.txt');
 var objReadline = readline.createInterface({ input: fRead });
+
+// console.log('=fRead=', fRead);
+// console.log('=objReadline=', objReadline);
 
 objReadline.on('line', function (line) {
   if (!line.includes('【') && /[\u4e00-\u9fa5]/.test(line)) {
@@ -47,14 +51,15 @@ objReadline.on('line', function (line) {
 var book2href = {};
 
 objReadline.on('close', function () {
-
+  console.log('objReadline close',);
   checkHasDownload(() => {
+    console.log('=allBooks=', allBooks, hasBooks);
     var books = allBooks.filter(i => !hasBooks.includes(i));
     console.log('开始下载：', books.length, JSON.stringify(books));
 
     (async () => {
 
-      const browser = await puppeteer.launch({ timeout: 55000, headless: false });
+      browser = await puppeteer.launch({ timeout: 55000, headless: false });
       const page = await browser.newPage();
       await page.setViewport({ width: 1366, height: 768 });
 
@@ -85,12 +90,14 @@ objReadline.on('close', function () {
           catch (e) {
             console.log(e);
           }
-        })(href, book)
+        })(href, book);
 
-        if (flag < books.length - 1) {
+        console.log('=flag=', flag, books);
+        if (flag < books.length) {
           next();
         } else {
-
+          console.log('结束？',);
+          await browser.close();
         }
         console.log('=book2href=', JSON.stringify(book2href));
       }
@@ -104,9 +111,10 @@ objReadline.on('close', function () {
 })
 
 function checkHasDownload(callback) {
+  console.log('=folder=', folder);
   fs.readdir(folder, function (err, files) {
-    console.log('=e=', files.length, JSON.stringify(files));
-    files.forEach(function (item, index) {
+    console.log('=e=', (files && files.length), JSON.stringify(files));
+    files && files.forEach(function (item, index) {
       var file = folder + '/' + item;
       var name = item.replace(/\.[a-zA-Z]{2,4}$/, '');
       fs.stat(file, function (e, b) {
@@ -127,6 +135,10 @@ function checkHasDownload(callback) {
         }
       });
     })
+    console.log('=hasBooks=', hasBooks);
+    if (!files || !files.length) {
+      callback && callback(hasBooks);
+    }
 
   })
 }

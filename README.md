@@ -3,6 +3,8 @@
 
 使用说明：
 
+0.当然是无脑npm install 或 cnpm install，然后node test即可；
+
 1.在allBooks.txt文件中写下你想下载的书封面对应的书名，使用换行分隔，请尽量保证名称准确，尽量不使用括号、冒号等；
 
 2.下载基于puppeteer，需要科学上网才能安装，或使用离线安装；
